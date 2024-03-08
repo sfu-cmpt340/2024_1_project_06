@@ -43,7 +43,9 @@ for img in imgs:
 
 ### What to find where
 
-Training data from Kaggle can be found [here](https://www.kaggle.com/datasets/andrewmvd/lung-and-colon-cancer-histopathological-images?resource=download)
+Training data from Kaggle can be found [here](https://www.kaggle.com/datasets/andrewmvd/lung-and-colon-cancer-histopathological-images?resource=download). 
+
+After downloading the datasets, unzip, then move lung_image_sets into your local repository as below.
 
 ```bash
 2024_1_project_06/
