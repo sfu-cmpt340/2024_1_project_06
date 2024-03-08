@@ -43,15 +43,26 @@ for img in imgs:
 
 ### What to find where
 
-Explain briefly what files are found where
+Training data from Kaggle can be found [here](https://www.kaggle.com/datasets/andrewmvd/lung-and-colon-cancer-histopathological-images?resource=download)
 
 ```bash
-repository
-├── src                          ## source code of the package itself
-├── scripts                      ## scripts, if needed
-├── docs                         ## If needed, documentation   
-├── README.md                    ## You are here
-├── requirements.yml             ## If you use conda
+2024_1_project_06/
+│
+├── data/ # upload training data downloaded from Kaggle
+│   └── lung_image_sets/
+│       ├── lung_aca/
+│       ├── lung_n/
+│       └── lung_scc/
+│
+├── src/
+│   ├── __init__.py # makes src a Python package
+│   ├── train.py # training script
+│   └── test/ # test scripts
+│       └── test.py
+│
+├── LICENSE
+├── README.md
+└── requirements.txt
 ```
 
 <a name="installation"></a>
