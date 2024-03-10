@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def load_data(data_dir="data/lung_image_sets", batch_size=32): # default values for now
+def load_data(data_dir="C:\data\lung_image_sets", batch_size=32): # default values for now
     transform = transforms.Compose([
-        transforms.Resize((150, 150)), 
+        
         transforms.ToTensor(), # convert to tensor
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), #normalizer - default ImageNet values
     ])
@@ -84,12 +84,35 @@ class LungPathologyModel(nn.Module): # convolutional neural network
         x = self.fc2(x)
         return x
 
-def train_model(train_loader, model):
-    pass
+# loss function (cross-entropy loss)
+loss_fn = torch.nn.CrossEntropyLoss()
+
+learning_rate = 0.001
+
+# optimizer 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+model = LungPathologyModel().to(device)
+optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9) # have to test momentum 
+
+def train_model(model, train_loader, optimizer, num_epochs=5):
+    model.train(True)
+
+    for epoch in range(num_epochs):
+        for images, labels in train_loader:
+            images, labels = images.to(device), labels.to(device)
+            
+            optimizer.zero_grad()
+            outputs = model(images)
+            loss = loss_fn(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            # log epochs
+            print(f'Epoch {epoch+1}, Loss: {loss.item()}')
 
 if __name__ == '__main__':
     train_loader, test_loader, class_names = load_data()
     model = LungPathologyModel()
-    train_model(train_loader, model)
+    train_model(model, train_loader, optimizer)
     show_loaded_images(train_loader, class_names)
     print(os.listdir("/data/lung_image_sets"))
