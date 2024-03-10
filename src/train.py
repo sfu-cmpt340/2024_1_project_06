@@ -48,19 +48,46 @@ def show_loaded_images(train_loader, class_names):
         npimg[i] = npimg[i] * std[i] + mean[i]
     
     # display
+    plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.title(labels_list)
     plt.show()
 
+class LungPathologyModel(nn.Module): # convolutional neural network
+    def __init__(self):
+        super(LungPathologyModel, self).__init__()
 
-def define_model():
-    pass
+        # convolutional layers, 3 layers for now
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1) # 3 ch RGB, 16 output ch
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1) # increase depth from 16 to 32
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1) # increase depth to 64
+
+        # pooling layer
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+
+        # fully connected layers
+        size_after_conv = 768 // 2**3 # considering input images are 768 x 768
+        self.fc1 = nn.Linear(64 * size_after_conv * size_after_conv, 1024)
+        self.fc2 = nn.Linear(1024, 3)  # 3 output neurons/classes [lung_aca, lung_n, lung_scc]
+
+    def forward(self, x): # define flow of input through model
+        # apply ReLU activation to each convolutional layer
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = self.pool(F.relu(self.conv3(x)))
+
+        # flatten tensor
+        x = x.view(-1, 64 * (768 // 2**3) * (768 // 2**3))
+        
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
 
 def train_model(train_loader, model):
     pass
 
 if __name__ == '__main__':
     train_loader, test_loader, class_names = load_data()
-    model = define_model()
+    model = LungPathologyModel()
     train_model(train_loader, model)
     show_loaded_images(train_loader, class_names)
-    print(os.listdir("C:\data\lung_image_sets"))
+    print(os.listdir("data/lung_image_sets"))
