@@ -8,9 +8,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-def load_data(data_dir="C:\data\lung_image_sets", batch_size=32): # default values for now
+def load_data(data_dir="C:\data\lung_image_sets", batch_size=16): # default values for now
     transform = transforms.Compose([
-        
+        transforms.Resize((150, 150)),
         transforms.ToTensor(), # convert to tensor
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]), #normalizer - default ImageNet values
     ])
@@ -26,7 +26,7 @@ def load_data(data_dir="C:\data\lung_image_sets", batch_size=32): # default valu
 
     # define train and test dataloaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=batch_size)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, num_workers=4) # add num_workers to allow for parallel loading and processing of data to speed ip training
 
     return train_loader, test_loader, dataset.classes
 
@@ -67,7 +67,7 @@ class LungPathologyModel(nn.Module): # convolutional neural network
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
 
         # fully connected layers
-        size_after_conv = 768 // 2**3 # considering input images are 768 x 768
+        size_after_conv = 150 // 2**3 # considering input images were resized to 150 x 150
         self.fc1 = nn.Linear(64 * size_after_conv * size_after_conv, 1024)
         self.fc2 = nn.Linear(1024, 3)  # 3 output neurons/classes [lung_aca, lung_n, lung_scc]
 
@@ -78,7 +78,7 @@ class LungPathologyModel(nn.Module): # convolutional neural network
         x = self.pool(F.relu(self.conv3(x)))
 
         # flatten tensor
-        x = x.view(-1, 64 * (768 // 2**3) * (768 // 2**3))
+        x = x.view(-1, 64 * (150 // 2**3) * (150 // 2**3))
         
         x = F.relu(self.fc1(x))
         x = self.fc2(x)
@@ -92,13 +92,13 @@ learning_rate = 0.001
 # optimizer 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model = LungPathologyModel().to(device)
-optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9) # have to test momentum 
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate) # have to test momentum 
 
-def train_model(model, train_loader, optimizer, num_epochs=5):
+def train_model(model, train_loader, optimizer, num_epochs=3):
     model.train(True)
-
     for epoch in range(num_epochs):
-        for images, labels in train_loader:
+        running_loss = 0.0
+        for i, (images, labels) in enumerate(train_loader):
             images, labels = images.to(device), labels.to(device)
             
             optimizer.zero_grad()
@@ -107,8 +107,10 @@ def train_model(model, train_loader, optimizer, num_epochs=5):
             loss.backward()
             optimizer.step()
 
-            # log epochs
-            print(f'Epoch {epoch+1}, Loss: {loss.item()}')
+            running_loss += loss.item()
+            if i % 100 == 99:  # to speed up calculation, print average loss every 100 mini-batches
+                print(f'Epoch {epoch+1}, Batch {i+1}, Average Loss: {running_loss / 100}')
+                running_loss = 0.0
 
 if __name__ == '__main__':
     train_loader, test_loader, class_names = load_data()
