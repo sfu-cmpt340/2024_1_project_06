@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import math
-from sklearn.metrics import confusion_matrix
 import seaborn as sns
+from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 
 class CustomImageFolder(ImageFolder):
     def __getitem__(self, index):
@@ -162,6 +162,27 @@ def count_cells_in_image(image_path):
     cv2.imwrite("/mnt/data/output.png", output_img)
 
     return len(cells)
+
+def evaluate_model(model, loader, device):
+    model.eval()
+    all_preds = []
+    all_labels = []
+    
+    with torch.no_grad():
+        for images, labels, _ in loader:
+            # transfer images and labels to the current computing device (CPU or GPU)
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = model(images)
+            # get the predictions from the maximum value of the output logits
+            _, predicted = torch.max(outputs, 1)
+            # collect the predictions and true labels
+            all_preds.extend(predicted.view(-1).cpu().numpy())
+            all_labels.extend(labels.view(-1).cpu().numpy())
+    
+    print(classification_report(all_labels, all_preds, target_names=class_names, zero_division=0))
+    print(f"Overall Accuracy: {accuracy_score(all_labels, all_preds):.2f}")
+    return all_labels, all_preds # Return the lists of labels and predictions for further analysis if needed
        
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -170,4 +191,5 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = StepLR(optimizer, step_size=7, gamma=0.1)  # Decays LR by a factor of 0.1 every 7 epochs
     train_model(model, train_loader, optimizer, scheduler)
+    evaluate_model(model, test_loader, device)
     show_loaded_images_and_predictions(model, test_loader, class_names, device)
