@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 import math
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
 
 class CustomImageFolder(ImageFolder):
     def __getitem__(self, index):
@@ -20,7 +22,7 @@ class CustomImageFolder(ImageFolder):
         # Return image, target, and path
         return (original_tuple[0], original_tuple[1], path)
     
-def load_data(data_dir="C:/data/lung_image_sets", batch_size=16, subset_size=100): # try to load a subset of the dataset for quicker training
+def load_data(data_dir="data/lung_image_sets", batch_size=16, subset_size=100): # try to load a subset of the dataset for quicker training
     transform = transforms.Compose([
         transforms.Resize((150, 150)), # resize the image for faster performance when training
         RandomHorizontalFlip(),  # augment by flipping images horizontally to try to deal with histopathological images where there are variations in cell apperance
@@ -45,6 +47,15 @@ def load_data(data_dir="C:/data/lung_image_sets", batch_size=16, subset_size=100
 
     return train_loader, test_loader, dataset.classes
 
+# Plot the confusion matrix given actual and predicted values
+def plot_confusion_matrix(y_true, y_pred, class_names):
+    cm = confusion_matrix(y_true, y_pred)
+    plt.figure(figsize=(8, 6))
+    sns.heatmap(cm, annot=True, cmap='Blues', fmt='g', xticklabels=class_names, yticklabels=class_names)
+    plt.xlabel('Predicted')
+    plt.ylabel('True')
+    plt.title('Confusion Matrix')
+
 def show_loaded_images_and_predictions(model, loader, class_names, device):
     model.eval()  # set the model to evaluation mode
     data_iter = iter(loader)
@@ -52,6 +63,12 @@ def show_loaded_images_and_predictions(model, loader, class_names, device):
     images = images.to(device)
     outputs = model(images)
     _, predicted = torch.max(outputs, 1)
+
+    # Get the actual and predicted values
+    y_true = []
+    y_pred = []
+    y_true.extend(labels.numpy())
+    y_pred.extend(predicted.cpu().numpy())
     images = images.cpu()
 
     # display images and their predictions
@@ -68,6 +85,7 @@ def show_loaded_images_and_predictions(model, loader, class_names, device):
         plt.imshow(img)
         plt.title(f"Actual: {class_names[labels[i]]}\nPredicted: {class_names[predicted[i]]}\nCell Count: {cell_count}") # Show actual and predicted cancer class
         plt.axis("off")
+    plot_confusion_matrix(y_true, y_pred, class_names)
     plt.show()
 
 class LungPathologyModel(nn.Module):
