@@ -48,8 +48,8 @@ def load_data(data_dir="data/lung_image_sets", batch_size=16, subset_size=100): 
     return train_loader, test_loader, dataset.classes
 
 # Plot the confusion matrix given actual and predicted values
-def plot_confusion_matrix(y_true, y_pred, class_names):
-    cm = confusion_matrix(y_true, y_pred)
+def plot_confusion_matrix(labels, predictions, class_names):
+    cm = confusion_matrix(labels, predictions)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, cmap='Blues', fmt='g', xticklabels=class_names, yticklabels=class_names)
     plt.xlabel('Predicted')
@@ -65,10 +65,10 @@ def show_loaded_images_and_predictions(model, loader, class_names, device):
     _, predicted = torch.max(outputs, 1)
 
     # Get the actual and predicted values
-    y_true = []
-    y_pred = []
-    y_true.extend(labels.numpy())
-    y_pred.extend(predicted.cpu().numpy())
+    #y_true = []
+    #y_pred = []
+    #y_true.extend(labels.numpy())
+    #y_pred.extend(predicted.cpu().numpy())
     images = images.cpu()
 
     # display images and their predictions
@@ -85,7 +85,7 @@ def show_loaded_images_and_predictions(model, loader, class_names, device):
         plt.imshow(img)
         plt.title(f"Actual: {class_names[labels[i]]}\nPredicted: {class_names[predicted[i]]}\nCell Count: {cell_count}") # Show actual and predicted cancer class
         plt.axis("off")
-    plot_confusion_matrix(y_true, y_pred, class_names)
+    #plot_confusion_matrix(y_true, y_pred, class_names)
     plt.show()
 
 class LungPathologyModel(nn.Module):
@@ -191,5 +191,6 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = StepLR(optimizer, step_size=7, gamma=0.1)  # Decays LR by a factor of 0.1 every 7 epochs
     train_model(model, train_loader, optimizer, scheduler)
-    evaluate_model(model, test_loader, device)
+    cm_labels, cm_preds = evaluate_model(model, test_loader, device)
+    plot_confusion_matrix(cm_labels, cm_preds, class_names)
     show_loaded_images_and_predictions(model, test_loader, class_names, device)
