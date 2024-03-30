@@ -46,7 +46,6 @@ class CustomPreprocessingTransform:
         img_pil = Image.fromarray(cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB))
         return img_pil  
     
-
 class CustomImageFolder(ImageFolder):
     def __getitem__(self, index):
         # original ImageFolder __getitem__ returns (image, target)
@@ -264,7 +263,7 @@ def evaluate_model(model, loader, device):
     print(classification_report(all_labels, all_preds, target_names=class_names, zero_division=0))
     print(f"Overall Accuracy: {accuracy_score(all_labels, all_preds):.2f}")
     return all_labels, all_preds # Return the lists of labels and predictions for further analysis if needed
-      
+
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     train_loader, test_loader, class_names = load_data(total_subset_size=100)  # reduce dataset size to a subet of 100 images instead to make training quicker
