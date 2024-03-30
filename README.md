@@ -71,14 +71,26 @@ After downloading the datasets, unzip, then move lung_image_sets into your local
 
 ## 2. Installation
 
-Provide sufficient instructions to reproduce and install your project. 
-Provide _exact_ versions, test on CSIL or reference workstations.
+```bash
+git clone https://github.com/sfu-cmpt340/2024_1_project_06.git
+cd 2024_1_project_06
+python -m venv env
+env\Scripts\activate
+```
+
+Install PyTorch by selecting the appropriate installation command from the [PyTorch official Get Started page](https://pytorch.org/get-started/locally/). The command you choose should correspond to your operating system, package manager (pip), Python version, and whether you need CUDA support. 
+
+For example, if you're installing PyTorch with CUDA 11.8 support:
 
 ```bash
-git clone $THISREPO
-cd $THISREPO
-conda env create -f requirements.yml
-conda activate amazing
+pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+
+```
+After PyTorch is installed, install the remaining project dependencies:
+
+```bash
+pip install -r requirements.txt
+
 ```
 
 <a name="repro"></a>
