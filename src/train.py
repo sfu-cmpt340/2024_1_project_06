@@ -45,7 +45,7 @@ class CustomPreprocessingTransform:
         # convert back to PIL image
         img_pil = Image.fromarray(cv2.cvtColor(img_cv, cv2.COLOR_BGR2RGB))
         return img_pil  
-    
+   
 class CustomImageFolder(ImageFolder):
     def __getitem__(self, index):
         # original ImageFolder __getitem__ returns (image, target)
@@ -54,7 +54,8 @@ class CustomImageFolder(ImageFolder):
         # return image, target, and path
         return (original_tuple[0], original_tuple[1], path)
     
-def load_data(data_dir="C:\data\lung_image_sets", batch_size=16, total_subset_size=100): # try to load a subset of the dataset for quicker training
+data_pathway = "data/lung_image_sets" # "C:\data\lung_image_sets"
+def load_data(data_dir=data_pathway, batch_size=16, total_subset_size=100): # try to load a subset of the dataset for quicker training
     custom_preprocess = CustomPreprocessingTransform(edge_detection=True, contrast_enhancement=True)
     
     train_transform = transforms.Compose([ # create a seperate training and testing transform (training has image augmentation, testing does not)
@@ -67,7 +68,6 @@ def load_data(data_dir="C:\data\lung_image_sets", batch_size=16, total_subset_si
         transforms.RandomPerspective(distortion_scale=0.5, p=0.5),                
         transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=5),
         transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),  # New augmentation
-
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
     ])
@@ -84,10 +84,10 @@ def load_data(data_dir="C:\data\lung_image_sets", batch_size=16, total_subset_si
     full_dataset = CustomImageFolder(data_dir, transform=train_transform)
 
     assert len(full_dataset.classes) == 3, "Dataset must contain exactly three classes."
-    
+
     # generate a subset of indices and create the training subset
     indices = torch.randperm(len(full_dataset))[:total_subset_size]
-    
+
     # split training and testing subsets
     train_size = int(len(indices) * 0.8)
     train_indices = indices[:train_size]
@@ -96,7 +96,7 @@ def load_data(data_dir="C:\data\lung_image_sets", batch_size=16, total_subset_si
     # create train subset 
     train_subset = torch.utils.data.Subset(full_dataset, train_indices)
     
-    # create test subset to display images from testing data without iamge augmentation 
+    # create test subset to display images from testing data without image augmentation 
     full_dataset.transform = test_transform
     test_subset = torch.utils.data.Subset(full_dataset, test_indices)
 
@@ -133,6 +133,7 @@ def show_loaded_images_and_predictions(model, loader, class_names, device):
     plt.figure(figsize=(10, 10))
 
     for i in range(min(len(images), 4)):  # show up to 4 images
+        print(paths[i])
         cell_count = count_cells_in_image(paths[i])
         plt.subplot(2, 2, i + 1)
         img = images[i].numpy().transpose((1, 2, 0))
@@ -141,7 +142,7 @@ def show_loaded_images_and_predictions(model, loader, class_names, device):
         img = std * img + mean
         img = np.clip(img, 0, 1)
         plt.imshow(img)
-        plt.title(f"Actual: {class_names[labels[i]]}\nPredicted: {class_names[predicted[i]]}\nCell Count: {cell_count}") # Show actual and predicted cancer class
+        plt.title(f"Actual: {class_names[labels[i]]}\nPredicted: {class_names[predicted[i]]}\nCell Count: {cell_count}") # show actual and predicted cancer class
         plt.axis("off")
     #plot_confusion_matrix(y_true, y_pred, class_names)
     plt.show()
@@ -209,13 +210,16 @@ def count_cells_in_image(image_path):
     # convert the image to grayscale for processing
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # reduce noise by applying the gaussian blur function
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+    blurred = cv2.GaussianBlur(gray, (7, 7), 0)
+    equalized_hist = cv2.equalizeHist(blurred)
+    block_size = 43
+    const_val = 7
     # use adaptive thresholding to try and identify cells to classify each type of image
-    thresh = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY_INV, 11, 2)
+    thresh = cv2.adaptiveThreshold(equalized_hist, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                   cv2.THRESH_BINARY_INV, block_size, const_val)
 
     # Apply morphological operations to remove small noise
-    kernel = np.ones((3, 3), np.uint8)
+    kernel = np.ones((5, 5), np.uint8)
     morph = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
     morph = cv2.dilate(morph, kernel, iterations=1)
 
@@ -224,22 +228,27 @@ def count_cells_in_image(image_path):
     
     # filter out small contours that are not cells
     cells = []
+    area_total = []
+    for c in contours:
+        area_total.append(cv2.contourArea(c))
+
     for c in contours:
         area = cv2.contourArea(c)
         
-        if area > 50:
+        if area > (np.mean(area_total) - np.std(area_total)):
             perimeter = cv2.arcLength(c, True)
             circularity = 4 * math.pi * (area / (perimeter * perimeter))
         
             if 0.5 < circularity < 1.5:  # range for near-circular shapes
                 cells.append(c)
-
+          
     # show the cell count on the image
     output_img = image.copy()
     for c in cells:
         # Use bounding rectangles to draw an approximate region around each cell
         x, y, w, h = cv2.boundingRect(c)
         cv2.rectangle(output_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.imshow("Img with bounding boxes", output_img)
 
     return len(cells)
 
