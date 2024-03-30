@@ -14,6 +14,7 @@ import math
 import seaborn as sns
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from PIL import Image
+from configparser import ConfigParser
 
 class CustomPreprocessingTransform:
     def __init__(self, edge_detection=True, contrast_enhancement=True):
@@ -53,8 +54,16 @@ class CustomImageFolder(ImageFolder):
         path = self.imgs[index][0]  # Get the image path
         # return image, target, and path
         return (original_tuple[0], original_tuple[1], path)
-    
-data_pathway = "data/lung_image_sets" # "C:\data\lung_image_sets"
+
+def get_config_value(section='DEFAULT', option='data_pathway', default=None):
+    config = ConfigParser()
+    config.read('config.ini')
+    try:
+        return config[section][option]
+    except KeyError:
+        return default
+
+data_pathway = get_config_value(section='DEFAULT', option='data_pathway', default='data/lung_image_sets')
 def load_data(data_dir=data_pathway, batch_size=16, total_subset_size=100): # try to load a subset of the dataset for quicker training
     custom_preprocess = CustomPreprocessingTransform(edge_detection=True, contrast_enhancement=True)
     
