@@ -198,6 +198,10 @@ def train_model(model, train_loader, optimizer, scheduler, num_epochs=10):
 
     # loop over the dataset for each epoch
     for epoch in range(num_epochs):
+        total_loss = 0.0
+        correct_predictions = 0
+        total_predictions = 0
+
         for i, (images, labels, _) in enumerate(train_loader):
             images, labels = images.to(device), labels.to(device) 
             # clear the gradients and set them to 0 to prevent previous gradients from adding up
@@ -211,7 +215,18 @@ def train_model(model, train_loader, optimizer, scheduler, num_epochs=10):
             # optimiziation step - try Adam optimization in main function
             optimizer.step()
 
+            # Update total loss
+            total_loss += loss.item()
+            # Calculate accuracy
+            _, predicted = torch.max(outputs.data, 1)
+            correct_predictions += (predicted == labels).sum().item()
+            total_predictions += labels.size(0)
+
             scheduler.step()  # Adjust the learning rate
+
+        epoch_loss = total_loss / len(train_loader)
+        epoch_acc = correct_predictions / total_predictions * 100
+        print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.2f}%, Learning Rate: {scheduler.get_last_lr()[0]}')
 
 def count_cells_in_image(image_path):
     # read the image
@@ -284,11 +299,11 @@ def evaluate_model(model, loader, device):
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    train_loader, test_loader, class_names = load_data(total_subset_size=100)  # reduce dataset size to a subet of 100 images instead to make training quicker
+    train_loader, test_loader, class_names = load_data(total_subset_size=200)  # reduce dataset size to a subet of 100 images instead to make training quicker
     model = LungPathologyModel().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
     scheduler = StepLR(optimizer, step_size=7, gamma=0.1)  # Decays LR by a factor of 0.1 every 7 epochs
-    train_model(model, train_loader, optimizer, scheduler, num_epochs=10)
+    train_model(model, train_loader, optimizer, scheduler, num_epochs=20)
     cm_labels, cm_preds = evaluate_model(model, test_loader, device)
     plot_confusion_matrix(cm_labels, cm_preds, class_names)
     show_loaded_images_and_predictions(model, test_loader, class_names, device)
