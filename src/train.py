@@ -74,7 +74,7 @@ def load_data(data_dir=data_pathway, batch_size=16, total_subset_size=100): # tr
         RandomRotation(10),  # augment by rotating images by up to 10 degrees
         transforms.RandomVerticalFlip(),
         transforms.RandomResizedCrop(256, scale=(0.8, 1.0), ratio=(0.75, 1.33)), 
-        transforms.RandomPerspective(distortion_scale=0.5, p=0.5),                
+        #transforms.RandomPerspective(distortion_scale=0.5, p=0.5),                 
         transforms.RandomAffine(degrees=0, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=5),
         transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),  # New augmentation
         transforms.ToTensor(),
@@ -222,7 +222,7 @@ def train_model(model, train_loader, optimizer, scheduler, num_epochs=10):
             correct_predictions += (predicted == labels).sum().item()
             total_predictions += labels.size(0)
 
-            scheduler.step()  # Adjust the learning rate
+        scheduler.step()  # Adjust the learning rate
 
         epoch_loss = total_loss / len(train_loader)
         epoch_acc = correct_predictions / total_predictions * 100
@@ -299,7 +299,7 @@ def evaluate_model(model, loader, device):
 
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    train_loader, test_loader, class_names = load_data(total_subset_size=200)  # reduce dataset size to a subet of 100 images instead to make training quicker
+    train_loader, test_loader, class_names = load_data(total_subset_size=400)  
     model = LungPathologyModel().to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
     scheduler = StepLR(optimizer, step_size=7, gamma=0.1)  # Decays LR by a factor of 0.1 every 7 epochs
