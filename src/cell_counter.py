@@ -6,7 +6,9 @@ import seaborn as sns
 from sklearn.metrics import classification_report, accuracy_score, confusion_matrix
 from PIL import Image
 
-image_path = "data/lung_image_sets/lung_scc/lungscc1252.jpeg"
+# THIS FUNCTION HAS BEEN ISOLATED FOR TESTING PURPOSES
+
+image_path = "data/lung_image_sets/lung_aca/lungaca1368.jpeg"
 # read the image
 image = cv2.imread(image_path, cv2.IMREAD_COLOR)
 if image is None:
@@ -52,5 +54,6 @@ for c in cells:
     x, y, w, h = cv2.boundingRect(c)
     cv2.rectangle(output_img, (x, y), (x + w, y + h), (0, 255, 0), 2)
     cv2.imshow("Img with bounding boxes", output_img)
+print(len(cells))
 cv2.waitKey(0)
 cv2.destroyAllWindows()
