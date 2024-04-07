@@ -191,6 +191,7 @@ learning_rate = 0.001
 
 def train_model(model, train_loader, optimizer, scheduler, num_epochs=10):
     model.train() # Set model to training mode.
+    scores = np.zeros((1, 2)) # Initialize array for plotting
 
     # Iterate over dataset for each epoch.
     for epoch in range(num_epochs):
@@ -217,12 +218,22 @@ def train_model(model, train_loader, optimizer, scheduler, num_epochs=10):
             _, predicted = torch.max(outputs.data, 1)
             correct_predictions += (predicted == labels).sum().item()
             total_predictions += labels.size(0)
+            # Append to score array
+            score = np.array([[scores[-1,0]+1, correct_predictions / total_predictions * 100]])
+            scores = np.concatenate((scores, score), axis=0)
 
         scheduler.step()  # Adjust the learning rate.
 
         epoch_loss = total_loss / len(train_loader)
         epoch_acc = correct_predictions / total_predictions * 100
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.2f}%, Learning Rate: {scheduler.get_last_lr()[0]}')
+    
+    # Plot the accuracy trend.
+    plt.figure(figsize=(8, 8))
+    plt.plot(scores[1:, 0], scores[1:, 1])
+    plt.xlabel('Numbers of Images Iterated')
+    plt.ylabel('Accuracy Score Percentage')
+    plt.title('Accuracy Rating of Trainer')
 
 def count_cells_in_image(image_path):
     image = cv2.imread(image_path, cv2.IMREAD_COLOR)
