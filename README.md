@@ -1,47 +1,58 @@
-# SFU CMPT 340 Project Template -- Replace with project title
-This repository is a template for your CMPT 340 course project.
-Replace the title with your project title, and **add a snappy acronym that people remember (mnemonic)**.
+# Automated Classification and Cell Counting of Lung Cancer from Histopathological Images Using Machine Learning (LPAI)
 
-Add a 1-2 line summary of your project here.
+LPAI integrates a convolutional neural network model in PyTorch for automatic classification and quantification of lung cancer cells in histopathological images. This project implements preprocessing for enhanced image analysis, includes functionalities for model training, performance evaluation, and provides visualization of predictions alongside cell counts.
 
 ## Important Links
 
-| [Timesheet](https://google.com) | [Slack channel](https://google.com) | [Project report](https://google.com) |
+| [Timesheet](https://1sfu-my.sharepoint.com/:x:/g/personal/hamarneh_sfu_ca/EToNF1db5yZNpQtMwcoy6jMBPKuCop_0wlRcKKu9BY7fyg?e=n970iV) | [Slack channel](https://sfucmpt340spring2024.slack.com/archives/C06EBMFFF3K) | [Project report](https://google.com) |
 |-----------|---------------|-------------------------|
 
 
-- Timesheet: Link your timesheet (pinned in your project's Slack channel) where you track per student the time and tasks completed/participated for this project/
-- Slack channel: Link your private Slack project channel.
-- Project report: Link your Overleaf project report document.
-
-
 ## Video/demo/GIF
-Record a short video (1:40 - 2 minutes maximum) or gif or a simple screen recording or even using PowerPoint with audio or with text, showcasing your work.
-
+[![CMPT340 Lung Histopathology Classification](https://img.youtube.com/vi/lGQG9MRGoEw/0.jpg)](https://www.youtube.com/watch?v=lGQG9MRGoEw "CMPT340 Lung Histopathology Classification")
 
 ## Table of Contents
 1. [Demo](#demo)
 
-2. [Installation](#installation)
+2. [Dataset Setup](#dataset-setup)
 
-3. [Reproducing this project](#repro)
+3. [Installation](#installation)
 
-4. [Guidance](#guide)
-
+4. [Reproducing this project](#repro)
 
 <a name="demo"></a>
-## 1. Example demo
+## 1. Demo - Example output
 
-A minimal example to showcase your work
+After executing `src/train.py` in a virtual environment, here are some example outputs:
 
-```python
-from amazing import amazingexample
-imgs = amazingexample.demo()
-for img in imgs:
-    view(img)
-```
+### Confusion Matrix on Max Subset Size of 5000 Images
+![Confusion Matrix](https://i.imgur.com/LVdVacu.png)
 
-### What to find where
+### Classification Report for the Same Subset
+The classification report below corresponds to the confusion matrix above, summarizing the model's performance on the same subset of 5000 images. It was generated using the scikit-learn library's `classification_report` function, reflecting the precision, recall, f1-score, and support for each class based on the model's predictions within the virtual environment terminal:
+
+| Class     | Precision | Recall | F1-score | Support |
+|-----------|-----------|--------|----------|---------|
+| lung_aca  | 0.98      | 0.93   | 0.95     | 336     |
+| lung_n    | 0.99      | 1.00   | 1.00     | 344     |
+| lung_scc  | 0.94      | 0.97   | 0.96     | 320     |
+| **accuracy**  |           |        | 0.97     | 1000    |
+| **macro avg** | 0.97      | 0.97   | 0.97     | 1000    |
+| **weighted avg** | 0.97      | 0.97   | 0.97     | 1000    |
+
+Overall Accuracy: 0.97
+
+### Cell Detection and Localization in Histopathological Images
+![Cell Counting](https://i.imgur.com/5A6Omap.png)
+
+### Predicted vs. Actual Classification Visualization
+
+The visualization below showcases the model's predictions compared to the actual classifications for four randomly selected histopathological images from the loaded data. Each image is accompanied by a label indicating the true class and the class predicted by the model, along with the estimated cell count detected within the image. 
+
+![Confusion Matrix](https://i.imgur.com/gcYj0lA.png)
+
+<a name="dataset-setup"></a>
+## 2. Dataset setup
 
 Training data from Kaggle can be found [here](https://www.kaggle.com/datasets/andrewmvd/lung-and-colon-cancer-histopathological-images?resource=download). 
 
@@ -59,7 +70,7 @@ After downloading the datasets, unzip, then move lung_image_sets into your local
 ├── src/
 │   ├── __init__.py # makes src a Python package
 │   ├── train.py # training script
-│   └── test/ # test scripts
+│   └── test/ 
 │       └── test.py
 │
 ├── LICENSE
@@ -74,8 +85,19 @@ After downloading the datasets, unzip, then move lung_image_sets into your local
 ```bash
 git clone https://github.com/sfu-cmpt340/2024_1_project_06.git
 cd 2024_1_project_06
+```
+Create a virtual environment and activate it:
+
+For Windows:
+```bash
 python -m venv env
 env\Scripts\activate
+```
+
+For Unix systems (including Linux and macOS):
+```bash
+python -m venv env
+source env/bin/activate
 ```
 
 Install PyTorch by selecting the appropriate installation command from the [PyTorch official Get Started page](https://pytorch.org/get-started/locally/). The command you choose should correspond to your operating system, package manager (pip), Python version, and whether you need CUDA support. 
@@ -90,32 +112,29 @@ After PyTorch is installed, install the remaining project dependencies:
 
 ```bash
 pip install -r requirements.txt
+```
 
+To start training the main script, run `train.py`
+```bash
+python src/train.py
 ```
 
 <a name="repro"></a>
 ## 3. Reproduction
-Demonstrate how your work can be reproduced, e.g. the results in your report.
+
+To reproduce the results of the LPAI project after cloning and setting up your development environment:
+
+1. Set up your dataset and follow the installation process.
+3. Navigate to the `src` directory within your project repository.
+4. To start training the model, run the `train.py` script:
 ```bash
-mkdir tmp && cd tmp
-wget https://yourstorageisourbusiness.com/dataset.zip
-unzip dataset.zip
-conda activate amazing
-python evaluate.py --epochs=10 --data=/in/put/dir
+python src/train.py
 ```
-Data can be found at ...
-Output will be saved in ...
 
-<a name="guide"></a>
-## 4. Guidance
+The script train.py is configured with predefined parameters for training. If you need to adjust settings such as the total_subset_size or the number of epochs, you will have to do so directly within the script.
 
-- Use [git](https://git-scm.com/book/en/v2)
-    - Do NOT use history re-editing (rebase)
-    - Commit messages should be informative:
-        - No: 'this should fix it', 'bump' commit messages
-        - Yes: 'Resolve invalid API call in updating X'
-    - Do NOT include IDE folders (.idea), or hidden files. Update your .gitignore where needed.
-    - Do NOT use the repository to upload data
-- Use [VSCode](https://code.visualstudio.com/) or a similarly powerful IDE
-- Use [Copilot for free](https://dev.to/twizelissa/how-to-enable-github-copilot-for-free-as-student-4kal)
-- Sign up for [GitHub Education](https://education.github.com/) 
+For example, to change the total_subset_size, locate and modify the following line in train.py:
+```bash
+train_loader, test_loader, class_names = load_data(total_subset_size=400)  # Adjust this number as needed
+```
+After making the necessary changes, save the script and execute it as shown above. The training process will begin using the new subset size you specified.
