@@ -4,7 +4,7 @@ LPAI integrates a convolutional neural network model in PyTorch for automatic cl
 
 ## Important Links
 
-| [Timesheet](https://1sfu-my.sharepoint.com/:x:/g/personal/hamarneh_sfu_ca/EToNF1db5yZNpQtMwcoy6jMBPKuCop_0wlRcKKu9BY7fyg?e=n970iV) | [Slack channel](https://sfucmpt340spring2024.slack.com/archives/C06EBMFFF3K) | [Project report](https://google.com) |
+| [Timesheet](https://1sfu-my.sharepoint.com/:x:/g/personal/hamarneh_sfu_ca/EToNF1db5yZNpQtMwcoy6jMBPKuCop_0wlRcKKu9BY7fyg?e=n970iV) | [Slack channel](https://sfucmpt340spring2024.slack.com/archives/C06EBMFFF3K) | [Project report](https://www.overleaf.com/project/65a57e2aa9883102c00b2515) |
 |-----------|---------------|-------------------------|
 
 
