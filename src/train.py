@@ -191,7 +191,10 @@ learning_rate = 0.001
 
 def train_model(model, train_loader, optimizer, scheduler, num_epochs=10):
     model.train() # Set model to training mode.
-
+    # Initialize arrays for plotting.
+    matrix_acc = np.zeros((1, 2))
+    matrix_err = np.zeros((1, 2))
+    
     # Iterate over dataset for each epoch.
     for epoch in range(num_epochs):
         total_loss = 0.0
@@ -223,6 +226,25 @@ def train_model(model, train_loader, optimizer, scheduler, num_epochs=10):
         epoch_loss = total_loss / len(train_loader)
         epoch_acc = correct_predictions / total_predictions * 100
         print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}, Accuracy: {epoch_acc:.2f}%, Learning Rate: {scheduler.get_last_lr()[0]}')
+        # Append data to plot arrays
+        acc_tuple = np.array([[matrix_acc[-1,0]+1, epoch_acc]])
+        err_tuple = np.array([[matrix_err[-1,0]+1, epoch_loss]])
+        matrix_acc = np.concatenate((matrix_acc, acc_tuple), axis=0)
+        matrix_err = np.concatenate((matrix_err, err_tuple), axis=0)
+
+    # Plot the accuracy trend.
+    plt.figure(figsize=(8, 8))
+    plt.plot(matrix_acc[1:, 0], matrix_acc[1:, 1])
+    plt.xlabel('Numbers of Epochs Iterated')
+    plt.ylabel('Accuracy Score Percentage')
+    plt.title('Accuracy Trend of Trainer per Epoch')
+
+    # Plot the loss trend.
+    plt.figure(figsize=(8, 8))
+    plt.plot(matrix_err[1:, 0], matrix_err[1:, 1])
+    plt.xlabel('Numbers of Epochs Iterated')
+    plt.ylabel('Loss Value')
+    plt.title('Loss Trend of Trainer per Epoch')
 
 def count_cells_in_image(image_path):
     image = cv2.imread(image_path, cv2.IMREAD_COLOR)
